@@ -1,0 +1,7 @@
+*~
+*.bin
+*.list
+*.o
+*.out
+*.out.map
+build
