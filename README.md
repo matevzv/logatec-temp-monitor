@@ -33,11 +33,11 @@ See also:
 
 To build the container image, run the following command on the SNA-LGTC board.
 
-Note: building the container requires cloning of the private vesna-drivers
+Note: building the container requires cloning of the private `vesna-drivers`
 GitHub repository. Because of this, you need to pass a GitHub access token to
-the build process (the ghtoken= parameter below). You can generate a token at
-your GitHub settings page. Select the Full control of private repositories
-permission.
+the build process (the `ghtoken=` parameter below). You can generate a token at
+your [GitHub settings page](https://github.com/settings/tokens). Select the
+*Full control of private repositories* permission.
 
 **Do not push the resulting container to Docker Hub or any other public
 repository. It's best to revoke the access token immediately after building the
