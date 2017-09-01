@@ -1,84 +1,77 @@
-/** @file
-  * @brief 	VESNA Driver Development and Demonstration
-  * @author Marko Mihelin
-  *
-  * - CMSIS/stm32...c clock is set to internal HSI by default
-  */
-
 #include <stdio.h>
 
 #include "vsn.h"
+#include "vsncrc32.h"
 #include "vsnsetup.h"
-#include "vsntime.h"
 #include "vsnpm.h"
-#include "vsnledind.h"
 #include "vsnusart.h"
-#include "vsndriversconf.h"
 #include "vsnsht21.h"
 
+#include "vsnlogateccmdparser.h"
+#include "vsnlogateccmdoutput.h"
 
-/* Global variables ----------------------------------------------------- */
-/* Main function prototypes --------------------------------------------- */
+const int sht21_i2c = VSN_I2C1_REMAPPED;
 
-/* Start of main -------------------------------------------------------- */
+static void sht21GetHandler(const char __attribute__((unused)) *args)
+{
+	float temp, rh;
+	I2C_ErrorStatus stat;
+
+	stat = vsnSHT21_MeasureTandRH(sht21_i2c, &temp, &rh);
+	if(stat != I2C_SUCCESS) {
+		logatecParser_printResponse("Error reading sensor: %u\r\nERROR\r\n", stat);
+	} else {
+		logatecParser_printResponse("T  = %f C\r\n", temp);
+		logatecParser_printResponse("Rh = %f %%\r\n", rh);
+	}
+}
+
+const struct ResourceHandler_t sht21Handler = {
+		.name = "sensors/sht21",
+		.get = sht21GetHandler,
+		.post = NULL
+};
+
+const struct ResourceHandler_t * const resources[] = {
+	 &sht21Handler,
+	 NULL
+};
+
 int main(void)
 {
-	/* Main local variables --------------------------------------------- */
-	USART_InitTypeDef USART_InitStructure;
-	float sht21_temp,sht21_rh;
-	int status;
-	/* End of main local variables -------------------------------------- */
-
-	/* Start of Main code ----------------------------------------------- */
-	/* Reset Clock configuration */
+	/* Init the SNC board */
 	SystemInit();
-	/* Turn on power manager */
 	vsnPM_init();
-	/* Set SysClock frequency */
 	vsnSetup_intClk(SNC_CLOCK_8MHZ);
-    /* Initialize SNC */
 	vsnSetup_initSnc();
-	/* Calibrate the HSI clock source */
 	vsnSetup_calibHsi();
-	/* Configure debug port at USART1, 115200 kbaud, 8 data bit, no parity, one stop bit, no flow control */
-	USART_InitStructure.USART_BaudRate = 115200;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	vsnCRC32_init();
+	vsnPM_mesureAdcBitVolt();
+
+	/* Open USART1 for communication with SNA-LGTC */
+	USART_InitTypeDef USART_InitStructure = {
+		.USART_BaudRate = 115200,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_Parity = USART_Parity_No,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx };
 	vsnUSART_init(USART1, &USART_InitStructure);
 
 	printf("SNC Initialized\n");
-	printf("Debug port Open\n");
 
-	/* Get ADC one bit value in volts, call as last init function */
-	vsnPM_mesureAdcBitVolt();
+	/* Init I2C for communication with SHT21 */
+	vsnI2C_init(sht21_i2c, VSN_I2C_MASTER, 0x01, 10000);
 
-	/* Init functions for sensors, actuators,... ------------------------ */
-	/* End of init functions -------------------------------------------- */
-	vsnI2C_init(VSN_I2C1_REMAPPED,VSN_I2C_MASTER,0x01, 10000);
-	printf("ERROR numbers:\n"
-			"I2C_SUCCESS = 0,\n"
-			"I2C_BUS_BUSY = 1,\n"
-			"I2C_NO_DEVICE = 2,\n"
-			"I2C_COM_IN_PROGRESS = 3,\n"
-			"I2C_IDLE = 4,\n"
-			"I2C_INCORRECT_SETUP_DATA = 5,\n"
-			"I2C_TIMEOUT_RX = 6,\n"
-			"I2C_TIMEOUT_STOP = 7,\n"
-			"I2C_TIMEOUT_DMA = 8,\n"
-			"I2C_NOT_IN_COPATIBLE_MODE = 9,\n"
-			"I2C_BUS_ERROR = 10\n");
-	/* Start of main while ---------------------------------------------- */
+	/* Initialize parser. */
+	locatecParser_init(logatecParser_outputUsart1, resources);
+
 	while(1)
 	{
-		// TMP75 have 8 possible device address
-		status = vsnSHT21_MeasureTandRH(VSN_I2C1_REMAPPED, &sht21_temp,&sht21_rh);
-		if(status != 0){
-			printf("read error = %d \n", status);
+		/* Check if any characters are available from USART1 and pass
+		 * them to the parser. */
+		char infrastructureMsg;
+		if (vsnUSART_read(USART1, &infrastructureMsg, 1)) {
+			logatecParser_inputUnicast(infrastructureMsg);
 		}
-		printf("temperature = %f C\r\n RH = %f %%\n", sht21_temp,sht21_rh);
-		vsnTime_delayMS(600);
-	} /* End of main while */
-} /* End of main */
-
+	}
+}

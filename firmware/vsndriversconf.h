@@ -99,7 +99,6 @@
 #define USART3_TX_BUFFER_LEN  128
 #define UART4_TX_BUFFER_LEN   128
 
-#define I2C1_DMA_MODE
 /* ------------------------------ ZigBit driver configuration ----------------------- */
 /* Set the desired message buffer size, min size is 2,
  * the buffer has to be declared by the user application check vsnZigbit_init()
@@ -120,6 +119,6 @@ void vsnDriversConf_nvic(void);
 #define CC_RADIO_ON_RADIO_CONNECTOR 1
 #define CC_RADIO_ON_EXPANSION_CONNECTOR 0
 
-
+#define DEBUG_LOGATEC_PARSER 0
 
 #endif /* VSNDRIVERSCONF_H_ */
