@@ -76,18 +76,23 @@ class MyVidek(object):
 def main():
 	logging.basicConfig(level=logging.DEBUG)
 
-	myvidek = MyVidek()
+	try:
+		myvidek = MyVidek()
 
-	myvidek_t = myvidek.get_sensor("SHT21", "Temperature", "C")
-	myvidek_rh = myvidek.get_sensor("SHT21", "Relative humidity", "%")
+		myvidek_t = myvidek.get_sensor("SHT21", "Temperature", "C")
+		myvidek_rh = myvidek.get_sensor("SHT21", "Relative humidity", "%")
+	except Exception as exc:
+		log.error("Videk: will not work: %s" % (exc,))
+		myvidek = None
 
 	sht21 = SHT21()
 
 	while True:
 		t, rh = sht21.get()
 
-		myvidek_t.upload(t)
-		myvidek_rh.upload(rh)
+		if myvidek is not None:
+			myvidek_t.upload(t)
+			myvidek_rh.upload(rh)
 
 		time.sleep(60)
 
