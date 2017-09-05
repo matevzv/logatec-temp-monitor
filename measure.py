@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime
 import logging
 import re
@@ -9,8 +10,8 @@ from videkrestclient import Videk
 log = logging.getLogger(__name__)
 
 class SHT21(object):
-	def __init__(self):
-		f = serial.Serial("/dev/ttyS2", 115200, timeout=10)
+	def __init__(self, port):
+		f = serial.Serial(port, 115200, timeout=10)
 		self.node = vesna.alh.ALHTerminal(f)
 
 	def get(self):
@@ -76,6 +77,11 @@ class MyVidek(object):
 def main():
 	logging.basicConfig(level=logging.DEBUG)
 
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--device', '-d', metavar='DEVICE', default='/dev/ttyS2',
+			help='Serial device to use')
+	args = parser.parse_args()
+
 	try:
 		myvidek = MyVidek()
 
@@ -85,7 +91,7 @@ def main():
 		log.error("Videk: will not work: %s" % (exc,))
 		myvidek = None
 
-	sht21 = SHT21()
+	sht21 = SHT21(args.device)
 
 	while True:
 		t, rh = sht21.get()
