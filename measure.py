@@ -35,8 +35,8 @@ class MyVidekSensor(object):
 				{
 					"value": value,
 					"ts": datetime.utcnow().isoformat(),
-					"latitude": 0.0,
-					"longitude": 0.0
+					"latitude": self.myvidek.node_location['latitude'],
+					"longitude": self.myvidek.node_location['longitude']
 				}
 		]
 
@@ -64,6 +64,10 @@ class MyVidek(object):
 		self.node_id = self.videk.getNodeID(self.hostname)
 		if self.node_id is None:
 			raise VidekError("Can't get node ID")
+
+		self.node_location = self.videk.getNodeLocation(self.hostname)
+		if self.node_location is None:
+			raise VidekError("Can't get node location")
 
 	def get_sensor(self, type, quantity, unit):
 		sensor_id = self.videk.getSensorID(self.hostname, type, quantity)
