@@ -4,9 +4,15 @@ This is a small containerized application for SNA-LGTC. It reads a SHT21 sensor
 once per minute and pushes the temperature and relative humidity measurements
 to the Videk management system.
 
-It expects to be running on the SNA-LGTC host board that has a VESNA SNC guest
-board attached. The VESNA SNC board must be equipped with a SNE-SENS board with
-a SHT21 sensor.
+It should be possible to build and run this container on both a PC and the
+SNA-LGTC host board from the same Dockerfile. When running on a PC, the VESNA
+SNC board should be connected over the Olimex ARM-USB-OCD programmer (both JTAG
+and the serial line). When running on the SNA-LGTC host board there should be
+a VESNA SNC guest board attached.
+
+In both cases VESNA SNC board must be equipped with a SNE-SENS board with a
+SHT21 sensor (there is also a `fake-sensor` branch available that works without
+the SNE-SENS board).
 
 This application has two components:
 
@@ -48,3 +54,6 @@ container.**
 To run the container in background:
 
     $ docker run -d --privileged -v /etc/videk/api.key:/etc/videk/api.key -v /etc/hostname:/etc/videk/hostname logatec-temp-monitor
+
+It is possible to leave out the Videk configurations (`-v` options). In that
+case, measurements will not be pushed to Videk.
