@@ -40,16 +40,16 @@ See also:
 To build the container image, run the following command on the SNA-LGTC board.
 
 Note: building the container requires cloning of the private `vesna-drivers`
-GitHub repository. Because of this, you need to pass a GitHub access token to
-the build process (the `ghtoken=` parameter below). You can generate a token at
-your [GitHub settings page](https://github.com/settings/tokens). Select the
-*Full control of private repositories* permission.
+GitHub repository. Because of this, you need a GitHub deploy key. This key is
+present on SNA-LGTC boards in `/etc/videk/id_rsa_github`.
+
+Copy the `id_rsa_github` file into the top directory of this repository before
+building the container. **Do not commit this file to the git repository**.
 
 **Do not push the resulting container to Docker Hub or any other public
-repository. It's best to revoke the access token immediately after building the
-container.**
+repository.**
 
-    $ docker build --build-arg=ghtoken=... -t logatec-temp-monitor .
+    $ docker build -t logatec-temp-monitor .
 
 To run the container in background:
 
