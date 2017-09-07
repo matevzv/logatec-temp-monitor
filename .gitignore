@@ -5,3 +5,4 @@
 *.out
 *.out.map
 build
+id_rsa*
