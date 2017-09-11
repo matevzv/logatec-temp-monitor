@@ -57,3 +57,5 @@ To run the container in background:
 
 It is possible to leave out the Videk configurations (`-v` options). In that
 case, measurements will not be pushed to Videk.
+
+There is an automated deployment system which depends on Github release feature. There are two additional scripts needed for this first the ansible script `deploy.yml` for deployment on nodes and second a small `Makefile` to tell the build system where to start.
