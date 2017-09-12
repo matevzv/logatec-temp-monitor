@@ -1,0 +1,22 @@
+---
+- hosts: all
+  remote_user: videk
+  tasks:
+  - name: download git project
+    git: repo=https://github.com/avian2/logatec-temp-monitor.git dest=~/deploy/logatec-temp-monitor
+
+  - name: Copy GitHub deploy key
+    copy: remote_src=True src=/etc/videk/id_rsa_github dest=~/deploy/logatec-temp-monitor
+
+  - name: build docker file
+    command: docker build -t logatec-temp-monitor .
+    args:
+      chdir: ~/deploy/logatec-temp-monitor
+
+  - name: run docker image
+    command: docker run -d --restart always --privileged -v /etc/videk/api.key:/etc/videk/api.key -v /etc/hostname:/etc/videk/hostname logatec-temp-monitor
+    register: dbg
+
+  - debug: msg="{{ dbg.stdout }}"
+
+  - debug: msg="{{ dbg.stderr }}"
