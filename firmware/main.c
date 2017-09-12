@@ -4,18 +4,26 @@
 #include "vsncrc32.h"
 #include "vsnsetup.h"
 #include "vsnpm.h"
-#include "vsntemperature.h"
 #include "vsnusart.h"
+#include "vsnsht21.h"
 
 #include "vsnlogateccmdparser.h"
 #include "vsnlogateccmdoutput.h"
 
+const int sht21_i2c = VSN_I2C1_REMAPPED;
+
 static void sht21GetHandler(const char __attribute__((unused)) *args)
 {
-	float temp = vsnTemperature_read();
-	float rh = 0.0;
-	logatecParser_printResponse("T  = %f C\r\n", temp);
-	logatecParser_printResponse("Rh = %f %%\r\n", rh);
+	float temp, rh;
+	I2C_ErrorStatus stat;
+
+	stat = vsnSHT21_MeasureTandRH(sht21_i2c, &temp, &rh);
+	if(stat != I2C_SUCCESS) {
+		logatecParser_printResponse("Error reading sensor: %u\r\nERROR\r\n", stat);
+	} else {
+		logatecParser_printResponse("T  = %f C\r\n", temp);
+		logatecParser_printResponse("Rh = %f %%\r\n", rh);
+	}
 }
 
 const struct ResourceHandler_t sht21Handler = {
@@ -50,6 +58,9 @@ int main(void)
 	vsnUSART_init(USART1, &USART_InitStructure);
 
 	printf("SNC Initialized\n");
+
+	/* Init I2C for communication with SHT21 */
+	vsnI2C_init(sht21_i2c, VSN_I2C_MASTER, 0x01, 10000);
 
 	/* Initialize parser. */
 	locatecParser_init(logatecParser_outputUsart1, resources);
