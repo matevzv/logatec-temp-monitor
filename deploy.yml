@@ -1,5 +1,5 @@
 ---
-- hosts: 193.2.205.212
+- hosts: 193.2.205.210
   remote_user: videk
   tasks:
   - name: download git project
