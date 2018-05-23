@@ -1,2 +1,2 @@
-all:
+cd:
 	ansible-playbook deploy.yml
